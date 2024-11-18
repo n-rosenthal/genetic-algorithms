@@ -63,3 +63,11 @@ class BitGene(Gene):
     def _flip(self, index: int) -> None:
         self.value[index] = 1 if self.value[index] == 0 else 0;
         return;
+    
+    def __setitem__(self, index: int, value: int):
+        """Overrides the `__setitem__` method of the `Gene` superclass for coercing the value to 0 or 1.
+        Args:
+            index (int): The index of the byte to set.
+            value (int): The value to set the byte to.
+        """
+        self.value[index] = 1 if value >= 1 else 0;
