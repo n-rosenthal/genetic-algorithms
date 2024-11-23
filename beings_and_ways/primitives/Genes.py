@@ -9,11 +9,20 @@ from random import randint;
 from typing import List;
 from abc import ABC, abstractmethod;
 
+def normalize(integer: int) -> int:
+    return integer % 2;
+
 def INT_TO_BITS(value: int, base: int = 2) -> list[int]:
     return [int(bit) for bit in bin(value)[2:].zfill(base)];
 
 def BITS_TO_FLOAT(bits: list[int], base: int = 2) -> float:
     return float(int("".join([str(x) for x in bits]), base)) / (2**len(bits) - 1);
+
+def FLOAT_TO_BITS(value: float, base: int = 2) -> list[int]:
+    return INT_TO_BITS(int(value * (2**base - 1)), base);
+
+def BITS_TO_INT(bits: list[int], base: int = 2) -> int:
+    return int("".join([str(x) for x in bits]), base);
 
 class Gene(ABC):
     """A `Gene` is a single element of a `Chromosome`. It is implement as an array of bits.
@@ -85,7 +94,7 @@ class BitGene(Gene):
     
     def mutate(self, probability: float) -> bool:
         if random.random() < probability:
-            self.value[randint(0, len(self.value))] = 1 if self.value[randint(0, len(self.value))] == 0 else 0;
+            self.value[int(random.random() * len(self.value))] = int(random.random());
             return True;
         return False;
     
@@ -186,14 +195,17 @@ class Chromosome:
         return;
     
     def __str__(self) -> str:
-        return str(self.genes);
+        str : str = "";
+        genes_float : float = chromosomeToFloats(self);
+        for i in range(len(self.genes)):
+            str += f"{self.genes[i].__str__()} \t {genes_float[i]: <20} {BITS_TO_INT(self.genes[i].value):<10} {normalize(BITS_TO_INT(self.genes[i].value)):<10} {getColor(self.genes[i])}\n";
+        return str;
     
     def __repr__(self) -> str:
         return str(self.genes);
     
     def sum(self) -> int:
         return sum([x.toInt() for x in self.genes]);
-
     
     def mean(self) -> float:
         return sum([x.toFloat() for x in self.genes])/len(self.genes);
@@ -204,6 +216,11 @@ class Chromosome:
     
     def remove(self, index: int) -> None:
         self.genes.pop(index);
+        return;
+    
+    def mutate(self, probability: float) -> None:
+        for gene in self.genes:
+            gene.mutate(probability);
         return;
 
 def createColoredBitGene(color: GColor
@@ -259,7 +276,16 @@ def r_createColoredChromosome(length : int = 0) -> Chromosome[ColoredBitGene] | 
 def chromosomeToFloats(chromosome: Chromosome[ColoredBitGene]) -> list[float]:
     return [x.toFloat() for x in chromosome.genes];
 
+def getColor(cb_gene: ColoredBitGene) -> tuple[int, int, int]:
+    return BITS_TO_INT(cb_gene.value[0:8]), BITS_TO_INT(cb_gene.value[8:16]), BITS_TO_INT(cb_gene.value[16:24]);
+
 if __name__ == "__main__":
     c = (r_createColoredChromosome(10));
+    
+
+    
+    for i in range(16):
+        c.mutate(0.1);
+        
     print(c);
     print(chromosomeToFloats(c));
